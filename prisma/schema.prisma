@@ -7,3 +7,43 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum Role {
+  cutting_supervisor
+  cutting_verifier
+  sewing_supervisor
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role
+  fullName     String   @map("full_name")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model Recipe {
+  id             Int               @id @default(autoincrement())
+  recipeCode     String            @unique @map("recipe_code")
+  name           String
+  category       String
+  stdFabricYards Float             @map("std_fabric_yards")
+  wastageCap     Float             @map("wastage_cap")
+  components     RecipeComponent[]
+
+  @@map("recipes")
+}
+
+model RecipeComponent {
+  id               Int     @id @default(autoincrement())
+  recipeId         Int     @map("recipe_id")
+  recipe           Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  componentName    String  @map("component_name")
+  piecesPerGarment Int     @map("pieces_per_garment")
+  imageUrl         String? @map("image_url")
+
+  @@map("recipe_components")
+}
