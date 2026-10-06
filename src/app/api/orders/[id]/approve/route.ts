@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/guard";
 import { getItemStatus } from "@/lib/traffic-light";
+import { calculateWastagePct } from "@/lib/wastage";
 
 type Result =
   | { ok: false; status: number; error: string; blocking?: string[] }
@@ -67,11 +68,11 @@ export async function POST(
       };
     }
 
-    const expectedFabric = order.targetQty * order.recipe.stdFabricYards;
-    const wastagePct =
-      Math.round(
-        ((order.actualFabricYds - expectedFabric) / expectedFabric) * 100 * 100
-      ) / 100;
+        const wastagePct = calculateWastagePct(
+      order.actualFabricYds,
+      order.targetQty,
+      order.recipe.stdFabricYards
+    );
 
     const updated = await tx.cuttingOrder.updateMany({
       where: { id: orderId, status: "PENDING_VERIFICATION" },
