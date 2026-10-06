@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/guard";
+import { OrderStatus } from "@prisma/client";
 
 function isPositiveInt(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value > 0;
@@ -92,4 +93,40 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json({ order }, { status: 201 });
+}
+
+export async function GET(request: Request) {
+  const guard = await requireRole("cutting_supervisor", "cutting_verifier");
+  if (!guard.ok) return guard.response;
+  const { session } = guard;
+
+  const statusParam = new URL(request.url).searchParams.get("status");
+
+  if (
+    statusParam !== null &&
+    !Object.values(OrderStatus).includes(statusParam as OrderStatus)
+  ) {
+    return NextResponse.json({ error: "Invalid status filter" }, { status: 400 });
+  }
+
+  let where = {};
+  if (session.role === "cutting_verifier") {
+    where = { status: OrderStatus.PENDING_VERIFICATION };
+  } else if (statusParam) {
+    where = { status: statusParam as OrderStatus };
+  }
+
+  const orders = await prisma.cuttingOrder.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+    include: {
+      recipe: { select: { recipeCode: true, name: true } },
+      creator: { select: { fullName: true } },
+      items: {
+        include: { component: { select: { componentName: true } } },
+      },
+    },
+  });
+
+  return NextResponse.json({ orders });
 }
