@@ -1,12 +1,41 @@
 import { getSession } from "@/lib/session";
 import { roleLabels } from "@/lib/roles";
+import { prisma } from "@/lib/prisma";
 import SupervisorPanel from "@/components/SupervisorPanel";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
   const session = await getSession();
+  if (!session) redirect("/");
 
   if (session?.role === "cutting_supervisor") {
-    return <SupervisorPanel />;
+    const orders = await prisma.cuttingOrder.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        recipe: { select: { recipeCode: true, name: true } },
+        logs: {
+          where: { decision: "REJECTED" },
+          orderBy: { timestamp: "desc" },
+          take: 1,
+          select: { rejectionNote: true },
+        },
+      },
+    });
+
+    const rows = orders.map((o) => ({
+      id: o.id,
+      orderNo: o.orderNo,
+      recipeCode: o.recipe.recipeCode,
+      recipeName: o.recipe.name,
+      targetQty: o.targetQty,
+      fabricRollId: o.fabricRollId,
+      actualFabricYds: o.actualFabricYds,
+      status: o.status,
+      createdAt: o.createdAt.toISOString(),
+      rejectionNote: o.logs[0]?.rejectionNote ?? null,
+    }));
+
+    return <SupervisorPanel orders={rows} />;
   }
 
   return (
