@@ -1,9 +1,11 @@
 import { getSession } from "@/lib/session";
 import { roleLabels } from "@/lib/roles";
 import { prisma } from "@/lib/prisma";
+import { getSewingQueue } from "@/lib/sewing-queue";
 import SupervisorPanel from "@/components/SupervisorPanel";
-import { redirect } from "next/navigation";
 import VerifierPanel from "@/components/VerifierPanel";
+import SewingPanel from "@/components/SewingPanel";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -70,6 +72,17 @@ export default async function DashboardPage() {
     }));
 
     return <VerifierPanel orders={rows} />;
+  }
+
+  if (session.role === "sewing_supervisor") {
+    const queue = await getSewingQueue();
+
+    const rows = queue.map((o) => ({
+      ...o,
+      verifiedAt: o.verifiedAt ? o.verifiedAt.toISOString() : null,
+    }));
+
+    return <SewingPanel orders={rows} />;
   }
 
   return (
