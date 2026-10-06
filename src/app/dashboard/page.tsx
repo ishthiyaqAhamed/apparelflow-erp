@@ -1,8 +1,13 @@
 import { getSession } from "@/lib/session";
 import { roleLabels } from "@/lib/roles";
+import SupervisorPanel from "@/components/SupervisorPanel";
 
 export default async function DashboardPage() {
   const session = await getSession();
+
+  if (session?.role === "cutting_supervisor") {
+    return <SupervisorPanel />;
+  }
 
   return (
     <div className="rounded-lg border border-slate-300 bg-white p-6">
