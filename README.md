@@ -6,7 +6,6 @@ No cutting batch can reach the sewing queue unless a Cutting Verifier has counte
 
 Live app: https://apparelflow-erp-ten.vercel.app/
 Repository: https://github.com/ishthiyaqAhamed/apparelflow-erp
-AI usage report: [AI_OPTIMIZATION_REPORT.md](./AI_OPTIMIZATION_REPORT.md)
 
 ## Demo credentials
 
@@ -90,7 +89,7 @@ Other points:
 
 ## Database schema
 
-Defined in `prisma/schema.prisma`, with migrations in `prisma/migrations`.
+Defined in prisma/schema.prisma, with migrations in prisma/migrations.
 
 | Table | Purpose | Key columns |
 |---|---|---|
@@ -113,13 +112,6 @@ Requirements: Node.js 20 or higher and a PostgreSQL database (a free Neon projec
 git clone https://github.com/ishthiyaqAhamed/apparelflow-erp.git
 cd apparelflow-erp
 npm install
-```
-
-Create a `.env` file in the project root:
-
-```
-DATABASE_URL="postgresql://USER:PASSWORD@HOST/DBNAME?sslmode=require"
-AUTH_SECRET="a-long-random-string"
 ```
 
 Generate a secret with:
